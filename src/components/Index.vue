@@ -5,7 +5,7 @@
       @click:upload="showFileUploader"
       @click:download="downloadBackup"
       @click:save="saveOnStorage"
-      @click:lock="lock"
+      @click:lock="showLocker"
     />
 
     <v-main>
@@ -20,7 +20,15 @@
           v-model="passphrase"
           @submit="unlock"
         />
+
+        <app-locker
+          :is-active="isLockerVisible"
+          v-model="passphrase"
+          @submit="lock"
+        />
       </v-container>
+
+      <app-records v-if="!isEncrypted" :records="vault" />
     </v-main>
   </div>
 </template>
@@ -29,6 +37,8 @@
 import AppBar from './AppBar.vue'
 import AppFileDownloader from './AppFileDownloader.vue'
 import AppFileUploader from './AppFileUploader.vue'
+import AppLocker from './AppLocker.vue'
+import AppRecords from './AppRecords.vue'
 import AppUnlocker from './AppUnlocker.vue'
 import { decrypt, encrypt } from '../modules/Crypto'
 import downloadFrom from '../modules/Downloader'
@@ -40,12 +50,15 @@ export default {
     AppBar,
     AppFileDownloader,
     AppFileUploader,
+    AppLocker,
+    AppRecords,
     AppUnlocker,
   },
 
   data: () => ({
     isEncrypted: false,
     isFileUploaderVisible: false,
+    isLockerVisible: false,
     isUnlockerVisible: false,
     passphrase: '',
     title: 'Offline Vault',
@@ -87,11 +100,16 @@ export default {
     hideFileUploader() {
       this.isFileUploaderVisible = false
     },
+    hideLocker() {
+      this.isLockerVisible = false
+    },
     hideUnlocker() {
       this.isUnlockerVisible = false
     },
     lock() {
       this.encrypt()
+      this.hideLocker()
+      this.passphrase = ''
       this.showUnlocker()
     },
     saveOnStorage() {
@@ -106,12 +124,16 @@ export default {
     showFileUploader() {
       this.isFileUploaderVisible = true
     },
+    showLocker() {
+      this.isLockerVisible = true
+    },
     showUnlocker() {
       this.isUnlockerVisible = true
     },
     unlock() {
-      this.hideUnlocker()
       this.decrypt()
+      this.hideUnlocker()
+      this.passphrase = ''
     },
   },
 }
